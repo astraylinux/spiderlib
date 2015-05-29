@@ -1,2 +1,2 @@
-# SimpleSpiderLib
+# spiderlib
 simple spider lib
