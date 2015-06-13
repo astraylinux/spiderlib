@@ -8,7 +8,7 @@ import sys
 import redis
 
 domains = {}
-black = []	
+black = []
 DNScache = {}
 
 config = None
@@ -25,7 +25,7 @@ def _Get(url,domain,heads={},timeout=30,use_proxy=0):
 		DNScache[domain] = {"lasttime":0}
 	if time.time() - DNScache[domain]["lasttime"] > 3600:
 		#DNS缓存超过1小时，就重新缓存
-		#if nds cache use time more than 1 hour, update it 
+		#if nds cache use time more than 1 hour, update it
 		host_ip = False
 		try:
 			host_ip = socket.gethostbyname(domain)
@@ -47,8 +47,8 @@ def _Get(url,domain,heads={},timeout=30,use_proxy=0):
 def Get(url,heads={},encode=False,timeout=30,use_proxy=0,domain_config=None):
 	if not "/" in url:
 		return (-2,"URL error :" + url)
-	domain = url.split("/")[2]	
-	
+	domain = url.split("/")[2]
+
 	if domain_config:
 		time.sleep(domain_config["spider_gap"])
 		#rc = util.GetRedisClient(config.g_redis)
@@ -60,7 +60,7 @@ def Get(url,heads={},encode=False,timeout=30,use_proxy=0,domain_config=None):
 		result = _Get(url,domain,heads,timeout,use_proxy)
 		#rc.decr(rkey)
 		if encode == True:
-			#deal the char set 
+			#deal the char set
 			(info,html) = result
 			html = spider.html2utf8(html,domain_config["default_code"])
 			result = (info,html)
