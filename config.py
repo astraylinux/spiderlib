@@ -1,6 +1,8 @@
 #!/usr/bin/python
 #coding=utf-8
-import etc
+import sys
+sys.path.append("etc")
+import sites
 
 ######### define state ###########
 #define som states for crawl
@@ -66,11 +68,11 @@ G_MAX_SELECTNUM_UP = 2000
 G_MAX_SELECTNUM_PICK = 2000
 
 #dispatch gap(seconds)
-G_DISPATCH_GAP = 10
+G_DISPATCH_GAP = 600
 
 ############### site config ####################
-G_SITE = etc.sites.CONFIG
-G_SITE_COMMON = etc.common
+G_SITE = sites.config
+G_SITE_COMMON = sites.common
 
 ############### log #########################
 G_LOG_ROOT = "/root/log/"
