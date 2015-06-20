@@ -1,34 +1,38 @@
 #!/usr/bin/python
 #coding=utf8
-import os,sys
-from SimplePythonLib import sql,util
+import sys
 import time
+from pylib import sql, util
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
-config = None
+CONFIG = None
 
-#when the link table empty, you can't use this to add a base url
-#the spider will start crawl by it
-#init_url.py 'base_url' 
 def init_url(url):
-	cursor = sql.GetCursor(config.g_mysql,config.g_maindb)
+	"""
+		when the link table empty, you can't use this to add a base url
+		the spider will start crawl by it
+		init_url.py 'base_url'
+	"""
+	sql_agent = sql.Sql(CONFIG.G_MYSQL, CONFIG.G_MAINDB)
 	data = {}
 	data["url"] = url
-	data["md5"] = util.GetMd5(url)
+	data["md5"] = util.md5(url)
 	data["depth"] = 0
 	data["type"] = 0
 	data["last_time"] = int(time.time())
 	data["domain"] = url.split("/")[2]
-	return sql.ExeInsert(cursor,config.g_table_link["name"],data)
+	return sql_agent.insert(CONFIG.G_TABLE_LINK["name"], data)
 
-#table which save then base url and new url we find
-#link表基本上是通用的，可以直接使用，不需要修改
 def creat_link_db():
-	cursor = sql.GetCursor(config.g_mysql,config.g_maindb)
-	for i in range(0,config.g_table_link["division"]):
-		table = config.g_table_link["name"]
-		if config.g_table_link["division"] > 1:
+	"""
+		table which save then base url and new url we find
+		ink表基本上是通用的，可以直接使用，不需要修改
+	"""
+	sql_agent = sql.Sql(CONFIG.G_MYSQL, CONFIG.G_MAINDB)
+	for i in range(0, CONFIG.G_TABLE_LINK["division"]):
+		table = CONFIG.G_TABLE_LINK["name"]
+		if CONFIG.G_TABLE_LINK["division"] > 1:
 			table = table + str(i)
 		link_sql = """CREATE TABLE `%s` (
 			  `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -48,15 +52,17 @@ def creat_link_db():
 			  UNIQUE KEY `md5` (`md5`) USING BTREE
 			) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;"""%(table)
 		#print link_sql
-		return cursor.execute(link_sql)
+		return sql_agent.execute(link_sql)
 
-#table to save all then html if config.g_ifsave_html is true
-#link表基本上是通用的，可以直接使用，不需要修改
 def creat_html_db():
-	cursor = sql.GetCursor(config.g_mysql,config.g_maindb)
-	for i in range(0,config.g_table_html["division"]):
-		table = config.g_table_html["name"]
-		if config.g_table_html["division"] > 1:
+	"""
+		table to save all then html if CONFIG.g_ifsave_html is true
+		link表基本上是通用的，可以直接使用，不需要修改
+	"""
+	sql_agent = sql.Sql(CONFIG.G_MYSQL, CONFIG.G_MAINDB)
+	for i in range(0, CONFIG.G_TABLE_HTML["division"]):
+		table = CONFIG.G_TABLE_HTML["name"]
+		if CONFIG.G_TABLE_HTML["division"] > 1:
 			table = table + str(i)
 		html_sql = """CREATE TABLE `%s` (
 			`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -67,17 +73,19 @@ def creat_html_db():
 			UNIQUE KEY `md5` (`md5`) USING BTREE
 		) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;"""%(table)
 		#print html_sql
-		return cursor.execute(html_sql)
-		
-#table of info,the picker pick content and save them in this table
-#it has few default fields, you must have to add new fields by hands
-#提取后的信息，有些字段是通用的，可以直接生成
-def creat_info_db():
-	cursor = sql.GetCursor(config.g_mysql,config.g_maindb)
-	for i in range(0,config.g_table_info["division"]):
+		return sql_agent.execute(html_sql)
 
-		table = config.g_table_info["name"]
-		if config.g_table_info["division"] > 1:
+def creat_info_db():
+	"""
+		table of info,the picker pick content and save them in this table
+		it has few default fields, you must have to add new fields by hands
+		提取后的信息，有些字段是通用的，可以直接生成
+	"""
+	sql_agent = sql.Sql(CONFIG.G_MYSQL, CONFIG.G_MAINDB)
+	for i in range(0, CONFIG.G_TABLE_INFO["division"]):
+
+		table = CONFIG.G_TABLE_INFO["name"]
+		if CONFIG.G_TABLE_INFO["division"] > 1:
 			table = table + str(i)
 		info_sql = """CREATE TABLE `%s` (
 		  `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -90,4 +98,4 @@ def creat_info_db():
 		  KEY `id` (`id`) USING BTREE
 		) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;"""%(table)
 		#print info_sql
-		return cursor.execute(info_sql)
+		return sql_agent.execute(info_sql)

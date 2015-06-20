@@ -40,6 +40,8 @@ G_DATA2SQL_QUEUE = G_PROJECT_FLAG + "_data2sql_queue"
 G_SQL_QUEUE = "mysql_queue"
 
 #config about database
+#division could be 1, 16, 256, the 16 use md5 last char
+#256 use the md5 last two char
 G_MAINDB = "test"
 G_TABLE_LINK = {"name":G_PROJECT_FLAG + "_link", "division":1}
 G_TABLE_HTML = {"name":G_PROJECT_FLAG + "_html", "division":1}

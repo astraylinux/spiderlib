@@ -8,7 +8,7 @@ _get_pid(){
 _start(){
 	run $1
 	pid=$(_get_pid $1)
-	echo "run as $pid" 
+	echo "run as $pid"
 }
 
 _stop(){
@@ -39,7 +39,7 @@ _resume(){
 	fi
 }
 
-case "$2" in 
+case "$2" in
 	"start")
 		_start $1
 	;;

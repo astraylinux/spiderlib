@@ -29,10 +29,16 @@ CONFIG = {
 	"params_keep": {},
 
 	#页面匹配正则
-	"page_type": {
+	"page_regex": {
 		"detail":r"^http://www.23us.com/book/[\d]*$",
 		#"index":"^http://www.23us.com/html/[\d]*/[\d]*/$",
 		#"content":"^http://www.23us.com/html/[\d]*/[\d]*/[\d]*.html$"
+	},
+
+	"download": {
+		"down_table": {"name":"info", "division":1},
+		"down_dir": "./data",
+		#"default_suf": "jpg",
 	},
 
 	"picker":{
