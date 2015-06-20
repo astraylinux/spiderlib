@@ -1,8 +1,6 @@
 #!/usr/bin/python
-#coding=utf8
-import sys
-sys.path.append("etc")
-import sites
+#coding=utf-8
+import etc
 
 ######### define state ###########
 #define som states for crawl
@@ -19,67 +17,66 @@ G_STATE_NET_ERROR = -2
 
 #############  server config ####################
 #project flag, it use as a prefix in table name or as a root directory name of log
-g_project_flag = "test"
+G_PROJECT_FLAG = "test"
 
 #mysql
-g_mysql_list = [{"host":"localhost","user":"root","pw":"xxxx"}]
-g_mysql = g_mysql_list[0]
+G_MYSQL_LIST = [{"host":"localhost", "user":"test", "pw":"123"}]
+G_MYSQL = G_MYSQL_LIST[0]
 
 #redis
-g_redis_list = [{"host":"127.0.0.1","port":6379,"db":1}]
-g_redis = g_redis_list[0]
+G_REDIS_LIST = [{"host":"127.0.0.1", "port":6379, "db":1}]
+G_REDIS = G_REDIS_LIST[0]
 
 #proxy server's ip and port info for net.py,if you need proxy
-g_proxy_file = None
+G_PROXY_FILE = None
 
 #the queue of the spider item data
-g_newlink_queue = g_project_flag + "_newlink_queue"
-g_uplink_queue = g_project_flag + "_uplink_queue"
-g_pick_queue = g_project_flag + "_pick_queue"
-g_data2sql_queue = g_project_flag + "_data2sql_queue"
+G_NEW_LINK_QUEUE = G_PROJECT_FLAG + "_newlink_queue"
+G_UPDATE_QUEUE = G_PROJECT_FLAG + "_uplink_queue"
+G_PICK_QUEUE = G_PROJECT_FLAG + "_pick_queue"
+G_DATA2SQL_QUEUE = G_PROJECT_FLAG + "_data2sql_queue"
 
 #the queue of the sql comand in redis for run_sql.py
-g_sql_queue = "mysql_queue"
+G_SQL_QUEUE = "mysql_queue"
 
 #config about database
-g_maindb = "test"
-g_table_link = {"name":g_project_flag + "_link","division":1}
-g_table_html = {"name":g_project_flag + "_html","division":1}
-g_table_info = {"name":g_project_flag + "_info","division":1}
+G_MAINDB = "test"
+G_TABLE_LINK = {"name":G_PROJECT_FLAG + "_link", "division":1}
+G_TABLE_HTML = {"name":G_PROJECT_FLAG + "_html", "division":1}
+G_TABLE_INFO = {"name":G_PROJECT_FLAG + "_info", "division":1}
 
 #max run threads of spider and picker
-g_max_spider_thread = 3
-g_max_picker_thread = 3
+G_MAX_SPIDER_THREAD = 3
+G_MAX_PICKER_THREAD = 3
 
 ############### spider control ################
 #if I need save html to database
 #if you didn't save the html,you have to download the html again where you pick content
-g_ifsave_html = False
+G_IFSAVE_HTML = False
 
 #spider interval config
-g_default_interval = 3600*6
-g_min_interval	= 3600
-g_max_interval = 3600*24*7
-g_rise_interval = 3600*9
+G_DEFAULT_INTERVAL = 3600*6
+G_MIN_INTERVAL	= 3600
+G_MAX_INTERVAL = 3600*24*7
+G_RISE_INTERVAL = 3600*9
 
 #max dispatch number(new url or update url)
-g_max_selectnum_new = 2000
-g_max_selectnum_up = 2000
-g_max_selectnum_pick = 2000
+G_MAX_SELECTNUM_NEW = 2000
+G_MAX_SELECTNUM_UP = 2000
+G_MAX_SELECTNUM_PICK = 2000
 
 #dispatch gap(seconds)
-g_dispatch_gap = 600
+G_DISPATCH_GAP = 10
 
 ############### site config ####################
-g_site = sites.config
-g_site_common = sites.common
+G_SITE = etc.sites.CONFIG
+G_SITE_COMMON = etc.common
 
 ############### log #########################
-g_log_root		= "/root/log/"
-g_dispatch_log	= g_log_root + g_project_flag + "/dispatch.log"
-g_spider_log	= g_log_root + g_project_flag + "/spider.log"
-g_pick_log		= g_log_root + g_project_flag + "/picker.log"
-g_down_log		= g_log_root + g_project_flag + "/down.log"
-g_source_log	= g_log_root + g_project_flag + "/source.log"
-g_sql_log		= g_log_root + "sql.log"
-
+G_LOG_ROOT = "/root/log/"
+G_DISPATCH_LOG = G_LOG_ROOT + G_PROJECT_FLAG + "/dispatch.log"
+G_SPIDER_LOG = G_LOG_ROOT + G_PROJECT_FLAG + "/spider.log"
+G_PICK_LOG = G_LOG_ROOT + G_PROJECT_FLAG + "/picker.log"
+G_DOWN_LOG = G_LOG_ROOT + G_PROJECT_FLAG + "/down.log"
+G_SOURCE_LOG = G_LOG_ROOT + G_PROJECT_FLAG + "/source.log"
+G_SQL_LOG = G_LOG_ROOT + "sql.log"
