@@ -20,7 +20,7 @@ G_STATE_NET_ERROR = -2
 G_PROJECT_FLAG = "test"
 
 #mysql
-G_MYSQL_LIST = [{"host":"localhost", "user":"test", "pw":"123"}]
+G_MYSQL_LIST = [{"host":"106.186.121.217", "user":"test", "pw":"123"}]
 G_MYSQL = G_MYSQL_LIST[0]
 
 #redis
