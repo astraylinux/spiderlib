@@ -8,14 +8,10 @@ import logging
 import json
 import net
 from pylib import util, sql, expath
-
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
-
 CONFIG = None
-
-util.log_config(CONFIG.G_PICK_LOG)
 
 def check_must_key(p_config, ret):
 	for key in p_config["must_key"]:
@@ -44,6 +40,7 @@ class PickThread(threading.Thread):
 		self._workas = workas
 		self._redis = util.get_redis_client(CONFIG.G_REDIS)
 		self._sql = sql.Sql(CONFIG.G_MYSQL, CONFIG.G_MAINDB, assoc=True)
+		util.log_config(CONFIG.G_PICK_LOG)
 
 	def _db_had(self, check_list, table_cfg):
 		self._sql.check_connect()

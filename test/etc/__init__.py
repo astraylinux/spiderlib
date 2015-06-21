@@ -2,6 +2,6 @@
 """
 	spider lib etc
 """
-import sites
 import common
+import webset
 

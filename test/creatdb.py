@@ -8,7 +8,7 @@ reload(sys)
 sys.setdefaultencoding("utf-8")
 
 def run():
-	tools.config = config
+	tools.CONFIG = config
 	tools.creat_link_db()
 	tools.creat_html_db()
 	tools.creat_info_db()

@@ -13,6 +13,7 @@ _start(){
 
 _stop(){
 	pid=$(_get_pid $1)
+	echo "stop pid: $pid"
 	if [[ $pid ]];then
 		kill -9 $pid
 	fi

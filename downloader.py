@@ -8,12 +8,10 @@ import logging
 import json
 import net
 import pylib
-
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
 CONFIG = None
-pylib.util.log_config(CONFIG.G_DOWN_LOG)
 
 ##########################################################################
 ###						Process Control
@@ -27,6 +25,7 @@ class DownThread(threading.Thread):
 		self._redis = pylib.util.get_redis_client(CONFIG.G_REDIS)
 		self._sql = pylib.sql.Sql(CONFIG.G_MYSQL,\
 				CONFIG.G_MAINDB, assoc=True)
+		pylib.util.log_config(CONFIG.G_DOWN_LOG)
 
 	def _data2redis_sql(self, data, table_cfg, op_type):
 		""" Sql语句放到redis队列，由sqld来执行."""

@@ -17,14 +17,14 @@ G_STATE_NET_ERROR = -2
 
 #############  server config ####################
 #project flag, it use as a prefix in table name or as a root directory name of log
-G_PROJECT_FLAG = "test"
+G_PROJECT_FLAG = "ask"
 
 #mysql
-G_MYSQL_LIST = [{"host":"106.186.121.217", "user":"test", "pw":"123"}]
+G_MYSQL_LIST = [{"host":"127.0.0.1", "user":"test", "pw":"123"}]
 G_MYSQL = G_MYSQL_LIST[0]
 
 #redis
-G_REDIS_LIST = [{"host":"127.0.0.1", "port":6379, "db":1}]
+G_REDIS_LIST = [{"host":"127.0.0.1", "port":6379, "db":0}]
 G_REDIS = G_REDIS_LIST[0]
 
 #proxy server's ip and port info for net.py,if you need proxy
@@ -49,12 +49,18 @@ G_TABLE_INFO = {"name":G_PROJECT_FLAG + "_info", "division":1}
 
 #max run threads of spider and picker
 G_MAX_SPIDER_THREAD = 3
-G_MAX_PICKER_THREAD = 3
+G_MAX_PICKER_THREAD = 1
 
 ############### spider control ################
 #if I need save html to database
-#if you didn't save the html,you have to download the html again where you pick content
-G_IFSAVE_HTML = False
+#if you didn't save the html,you have to download
+#the html again where you pick content
+G_IFSAVE_HTML = True
+#if G_IFSAVE_HTML=True and this is ture
+#will save the process html(not detail page)
+G_IFSAVE_PASS = False
+#if this not True, crawler will not look for new link's from detail page
+G_INTO_DETAIL = False
 
 #spider interval config
 G_DEFAULT_INTERVAL = 3600*6
@@ -71,11 +77,11 @@ G_MAX_SELECTNUM_PICK = 2000
 G_DISPATCH_GAP = 10
 
 ############### site config ####################
-G_SITE = etc.sites.CONFIG
+G_SITE = etc.webset.SITES
 G_SITE_COMMON = etc.common
 
 ############### log #########################
-G_LOG_ROOT = "/root/log/"
+G_LOG_ROOT = "/home/astray/git/log/"
 G_DISPATCH_LOG = G_LOG_ROOT + G_PROJECT_FLAG + "/dispatch.log"
 G_SPIDER_LOG = G_LOG_ROOT + G_PROJECT_FLAG + "/spider.log"
 G_PICK_LOG = G_LOG_ROOT + G_PROJECT_FLAG + "/picker.log"

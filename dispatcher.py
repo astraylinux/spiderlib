@@ -23,9 +23,13 @@ class Dispatcher(object):
 
 	def get_new_url(self):
 		""" Get urls that never be visit insert into redis queue."""
-		where = "where crawl_state=%s limit %s"%(CONFIG.G_STATUS_UNCRAWLED,\
-				CONFIG.G_MAX_SELECTNUM_NEW)
-		rows = self._sql.select(CONFIG.G_TABLE_LINK, ["*"], where)
+		if CONFIG.G_INTO_DETAIL:
+			where = "where crawl_state=%s limit %s"%(\
+					CONFIG.G_STATUS_UNCRAWLED, CONFIG.G_MAX_SELECTNUM_NEW)
+		else:
+			where = "where crawl_state=%s and not type=1 limit %s"%(\
+					CONFIG.G_STATUS_UNCRAWLED, CONFIG.G_MAX_SELECTNUM_NEW)
+		rows = self._sql.select(CONFIG.G_TABLE_LINK["name"], ["*"], where)
 		for row in rows:
 			data = json.dumps(row)
 			self._redis.lpush(CONFIG.G_NEW_LINK_QUEUE, data)
@@ -35,10 +39,10 @@ class Dispatcher(object):
 	def get_update_url(self):
 		""" Get urls that need visit again. Insert into redis queue."""
 		where = "where ((CEIL(un_uptimes-uptimes)+1)*%s+last_time)<%s \
-				and crawl_state=%s limit %s"%(CONFIG.g_rise_linterval, \
+				and crawl_state=%s limit %s"%(CONFIG.G_RISE_INTERVAL, \
 				int(time.time()), CONFIG.G_STATUS_CRAWLED, \
-				CONFIG.g_max_selectnum_up)
-		rows = self._sql.select(CONFIG.G_TABLE_LINK, ["*"], where)
+				CONFIG.G_MAX_SELECTNUM_UP)
+		rows = self._sql.select(CONFIG.G_TABLE_LINK["name"], ["*"], where)
 		for row in rows:
 			data = json.dumps(row)
 			self._redis.lpush(CONFIG.G_UPDATE_QUEUE, data)
@@ -59,8 +63,8 @@ class Dispatcher(object):
 				rows = self._sql.select(table["name"], ["*"], where)
 				result = rows
 			else:
-				rows = self._sql.select(table["name"] + str(i),\
-						["*"], where)
+				rows = self._sql.select(table["name"] + \
+						str(pylib.util.dec2hex(i)), ["*"], where)
 				for row in rows:
 					result.append(row)
 
@@ -80,7 +84,7 @@ class Dispatcher(object):
 			if self._redis.llen(CONFIG.G_UPDATE_QUEUE) == 0:
 				self.get_update_url()
 
-			if self._redis.llen(CONFIG.g_pick_queue) == 0:
+			if self._redis.llen(CONFIG.G_PICK_QUEUE) == 0:
 				self.get_pick_url()
 
-			time.sleep(CONFIG.G_DESPATCH_GAP)
+			time.sleep(CONFIG.G_DISPATCH_GAP)
