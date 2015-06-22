@@ -33,7 +33,7 @@ def print_for_test(ret):
 ###################################################################################
 ###						Process Control
 ###################################################################################
-class PickThread(threading.Thread):
+class Picker(threading.Thread):
 	def __init__(self, num, workas="crawl"):
 		threading.Thread.__init__(self)
 		self._num = num
@@ -177,9 +177,9 @@ class PickThread(threading.Thread):
 #if __name__ == "__main__":
 #	if len(sys.argv) > 1:
 #		if sys.argv[1] == "test":
-#			thread = PickThread(0, "test")
+#			thread = Picker(0, "test")
 #		else:
-#			thread = PickThread(0)
+#			thread = Picker(0)
 #		data = {"url":"http://manhua.dmzj.com/yaojingdeweiba/"}
 #		data["md5"] = util.GetMd5(data["url"])
 #		data["type"] = 1

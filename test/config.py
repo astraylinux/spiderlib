@@ -73,6 +73,8 @@ G_MAX_SELECTNUM_NEW = 2000
 G_MAX_SELECTNUM_UP = 2000
 G_MAX_SELECTNUM_PICK = 2000
 
+#crawler only dispatch the task which id%3 == 1
+G_DISPATCH_CRAWLER = (1, 3)
 #dispatch gap(seconds)
 G_DISPATCH_GAP = 10
 
