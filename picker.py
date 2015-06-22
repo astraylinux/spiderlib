@@ -7,7 +7,7 @@ import time
 import logging
 import json
 import net
-from pylib import util, sql, expath
+from pylib import util, sql, expath, spider
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
@@ -62,6 +62,20 @@ class Picker(threading.Thread):
 		else:
 			return self._sql.exist(table, check_list, "md5")
 
+	def _html_from_db(self, md5, table_cfg):
+		self._sql.check_connect()
+		table = table_cfg["name"]
+		division = table_cfg["division"]
+		if division == 16 or division == 256:
+			flag = md5[-1:] if division == 16 else md5[-2:]
+			row = self._sql.select(table + flag, ["html"], {"md5":md5}, one=0)
+		else:
+			row = self._sql.select(table, ["html"], {"md5":md5}, one=0)
+		if row:
+			return row["html"]
+		else:
+			return ""
+
 	def _data2redis_sql(self, sqldata, table_cfg, op_type):
 		table = table_cfg["name"]
 		division = table_cfg["division"]
@@ -71,6 +85,22 @@ class Picker(threading.Thread):
 	def _pick_state(self, md5, state, table_cfg):
 		self._data2redis_sql({"md5":md5, "pick_state":state}, table_cfg, "update")
 
+	#保存html页面到数据库， 分为详情页和过程页，保存可配置
+	def _save_html(self, md5, html, d_config):
+		if CONFIG.G_IFSAVE_HTML == False:
+			return
+
+		dcode = d_config["config"]["default_code"]
+		html = spider.html2utf8(html, dcode)
+		item = {"md5":md5, "html":html}
+		table = CONFIG.G_TABLE_HTML["name"]
+		division = CONFIG.G_TABLE_HTML["division"]
+		if not self._db_had(CONFIG.G_TABLE_HTML, {"md5":md5}):
+			sql.data2redis(self._redis, CONFIG.G_SQL_QUEUE, table,\
+			"insert", item, "md5", division)
+		else:
+			sql.data2redis(self._redis, CONFIG.G_SQL_QUEUE, table,\
+			"update", item, "md5", division)
 
 	def _deal_pick_ret(self, ret, url, md5, table_cfg):
 		#查内容是否在库里，根据情况执行插入或更新
@@ -142,14 +172,18 @@ class Picker(threading.Thread):
 		domain = url.split("/")[2]
 		d_config = CONFIG.G_SITE[domain]
 
-		(header, html) = net.get(url)
-		if header["code"] == 200:
-			count = self._pick(d_config, html, task_data)
-			return (CONFIG.G_STATE_PICKED, count)
+		if CONFIG.G_IFSAVE_HTML == True:
+			html = self._html_from_db(task_data["md5"], CONFIG.G_TABLE_HTML)
 
-		self._pick_state(task_data["md5"], CONFIG.G_STATE_ERROR,\
-				CONFIG.G_TABLE_LINK)
-		return (CONFIG.G_STATE_NET_ERROR, (0, 0))
+		if not html:
+			(header, html) = net.get(url)
+			if not header["code"] == 200:
+				self._pick_state(task_data["md5"],\
+					CONFIG.G_STATE_ERROR, CONFIG.G_TABLE_LINK)
+				return (CONFIG.G_STATE_NET_ERROR, (0, 0))
+
+		count = self._pick(d_config, html, task_data)
+		return (CONFIG.G_STATE_PICKED, count)
 
 	def run(self):
 		while True:
