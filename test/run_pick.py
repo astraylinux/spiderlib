@@ -9,13 +9,14 @@ reload(sys)
 sys.setdefaultencoding("utf-8")
 
 #==============================================================
+picker.CONFIG = config
 if __name__ == "__main__":
 	if len(sys.argv) > 1:
 		if sys.argv[1] == "test":
 			thread = picker.Picker(0, "test")
 		else:
 			thread = picker.Picker(0)
-		data = {"url":"http://manhua.dmzj.com/yaojingdeweiba/"}
+		data = {"url":"http://zhidao.baidu.com/question/618395240082890852.html"}
 		data["md5"] = util.md5(data["url"])
 		data["type"] = 1
 		print thread._run(data)

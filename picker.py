@@ -65,8 +65,8 @@ class Picker(threading.Thread):
 	def _data2redis_sql(self, sqldata, table_cfg, op_type):
 		table = table_cfg["name"]
 		division = table_cfg["division"]
-		sql.data2redis(sqldata, self._redis, CONFIG.G_SQL_QUEUE, \
-				table, op_type, "md5", division)
+		sql.data2redis(self._redis, CONFIG.G_SQL_QUEUE, \
+				table, op_type, sqldata, "md5", division)
 
 	def _pick_state(self, md5, state, table_cfg):
 		self._data2redis_sql({"md5":md5, "pick_state":state}, table_cfg, "update")
@@ -118,19 +118,21 @@ class Picker(threading.Thread):
 
 		#根据xpath配置提取html里的信息
 		p_config = d_config["picker"][page_type]
-		table_cfg = p_config["table"]
+		table_cfg = CONFIG.G_TABLE_INFO
+		if "table" in p_config:
+			table_cfg = p_config["table"]
 		picker = expath.XPath(url, html, d_config["default_code"])
 		xpath_config = p_config["path"]
 		ret = picker.pick(xpath_config)
+
+		if self._workas == "test":
+			print_for_test(ret)
+			return	(0, len(ret))
 
 		#检查必需有值的字段是否有值
 		if not check_must_key(p_config, ret):
 			self._pick_state(md5, CONFIG.G_STATE_ERROR, CONFIG.G_TABLE_LINK)
 			return (0, 0)
-
-		if self._workas == "test":
-			print_for_test(ret)
-			return	(0, len(ret))
 
 		return self._deal_pick_ret(ret, url, md5, table_cfg)
 

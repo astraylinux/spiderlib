@@ -26,7 +26,7 @@ CONFIG = {
 	"forbidden_suf": ["rar", "pdf", "jpg", "png", "zip",\
 			"doc", "xls", "css", "js", "php"],
 	#禁止包含的字符串
-	"filter_list": ["javascript"],
+	"filter_list": ["javascript", "&lm="],
 	#必需包含其中任一个字符串
 	"include_list": ["/search?", "/question/"],
 	#必需包含其中所有字符串
@@ -56,22 +56,14 @@ CONFIG = {
 	"picker":{
 		common.G_PAGETYPE["detail"]["type"]:{
 			#提取后入的表
-			"table":{"name":"info", "division":1},
+			#"table":{"name":"test_info", "division":1},
 			#必须要有结果的字段
 			"must_key":["title"],
 			"path":{
-				#普通结果
-				"title":{"key":\
-					"""/html/body//h1[@class="article-title"]/a/text()"""},
-				#有对结果做处理
-				"date":{"key":"""/html//div[@class="meta"]/time/text()""",
-						"remake":[{"method":"replace", "argv":["日", ""]}]},
-				#取得的是列表
-				"tags":{
-					"type":"list",
-					"block":"""/html//div[@class="article-tags"]/a""",
-					"data":{"tags":{"key":"./text()"}}
-				}
+				"title":{"key":"""/html/head/title/text()"""},
+				"keywords":{"key":"""/html/head/meta[@name="keywords"]/@content"""},
+				"description":{"key":\
+					"""/html/head/meta[@name="description"]/@content"""},
 			}
 		},
 		common.G_PAGETYPE["index"]["type"]: {},

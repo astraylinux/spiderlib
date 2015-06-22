@@ -17,7 +17,7 @@ G_STATE_NET_ERROR = -2
 
 #############  server config ####################
 #project flag, it use as a prefix in table name or as a root directory name of log
-G_PROJECT_FLAG = "ask"
+G_PROJECT_FLAG = "test"
 
 #mysql
 G_MYSQL_LIST = [{"host":"127.0.0.1", "user":"test", "pw":"123"}]
@@ -37,7 +37,7 @@ G_PICK_QUEUE = G_PROJECT_FLAG + "_pick_queue"
 G_DATA2SQL_QUEUE = G_PROJECT_FLAG + "_data2sql_queue"
 
 #the queue of the sql comand in redis for run_sql.py
-G_SQL_QUEUE = "mysql_queue"
+G_SQL_QUEUE = G_PROJECT_FLAG + "_mysql_queue"
 
 #config about database
 #division could be 1, 16, 256, the 16 use md5 last char
@@ -74,7 +74,7 @@ G_MAX_SELECTNUM_UP = 2000
 G_MAX_SELECTNUM_PICK = 2000
 
 #crawler only dispatch the task which id%3 == 1
-G_DISPATCH_CRAWLER = (1, 3)
+G_DISPATCH_CRAWLER = (0, 1)
 #dispatch gap(seconds)
 G_DISPATCH_GAP = 10
 
@@ -89,4 +89,4 @@ G_SPIDER_LOG = G_LOG_ROOT + G_PROJECT_FLAG + "/spider.log"
 G_PICK_LOG = G_LOG_ROOT + G_PROJECT_FLAG + "/picker.log"
 G_DOWN_LOG = G_LOG_ROOT + G_PROJECT_FLAG + "/down.log"
 G_SOURCE_LOG = G_LOG_ROOT + G_PROJECT_FLAG + "/source.log"
-G_SQL_LOG = G_LOG_ROOT + "sql.log"
+G_SQL_LOG = G_LOG_ROOT + G_PROJECT_FLAG + "/sql.log"

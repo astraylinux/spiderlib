@@ -82,6 +82,8 @@ def _get(url, domain, heads=None, timeout=30, use_proxy=0, d_config=None):
 	if time.time() - DNS_CACHE[domain]["lasttime"] > 3600:
 		_flush_dns(domain, d_config)
 
+	if not heads:
+		heads = {}
 	heads["host"] = domain
 	match_ip = get_ip_from_cache(domain)
 	url = url.replace(domain, match_ip)

@@ -7,12 +7,14 @@ _get_pid(){
 
 _start(){
 	run $1
-	pid=$(_get_pid $1)
+	path=`pwd`
+	pid=$(_get_pid $path/$1)
 	echo "run as $pid"
 }
 
 _stop(){
-	pid=$(_get_pid $1)
+	path=`pwd`
+	pid=$(_get_pid $path/$1)
 	echo "stop pid: $pid"
 	if [[ $pid ]];then
 		kill -9 $pid
