@@ -180,7 +180,7 @@ class Picker(threading.Thread):
 				default_code = "utf-8"
 
 		if not html:
-			(header, html) = net.get(url)
+			(header, html) = net.get(url, d_config=d_config)
 			if not header["code"] == 200:
 				self._pick_state(task_data["md5"],\
 					CONFIG.G_STATE_ERROR, CONFIG.G_TABLE_LINK)

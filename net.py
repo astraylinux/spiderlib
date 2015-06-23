@@ -36,10 +36,11 @@ def _flush_dns(domain, d_config=None):
 		host_ips = socket.getaddrinfo(domain, None, 0, socket.SOCK_STREAM)
 	except socket.gaierror:
 		return ({"code":999}, "")
+	DNS_CACHE[domain]["ip"] = []
+	if d_config and "default_dns" in d_config:
+		DNS_CACHE[domain]["ip"] = d_config["default_dns"]
+
 	if host_ips:
-		DNS_CACHE[domain]["ip"] = []
-		if d_config and "default_dns" in d_config:
-			DNS_CACHE[domain]["ip"] = d_config["default_dns"]
 		for host_ip in host_ips:
 			new_ip = host_ip[4][0]
 			if not new_ip in DNS_CACHE[domain]["ip"]:
