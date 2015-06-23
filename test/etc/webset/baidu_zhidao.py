@@ -58,12 +58,17 @@ CONFIG = {
 			#提取后入的表
 			#"table":{"name":"test_info", "division":1},
 			#必须要有结果的字段
-			"must_key":["title"],
+			"must_key":["title", "description"],
 			"path":{
 				"title":{"key":"""/html/head/title/text()"""},
 				"keywords":{"key":"""/html/head/meta[@name="keywords"]/@content"""},
-				"description":{"key":\
-					"""/html/head/meta[@name="description"]/@content"""},
+				"description":{"key":"""/html/head/meta[@name="description"]/@content"""},
+				"goodnum":{"key":"""/html//div[@class="bd answer"]//div[@class="line content"]//span[3]/@data-evaluate"""},
+				"badnum":{"key":"""/html//div[@class="bd answer"]//div[@class="line content"]//span[4]/@data-evaluate"""},
+				"answernum":{"key":"""/html//div[@class="hd line other-hd"]//h2/text()""",
+					"remake":[{"method":"re", "argv":["[\\d]+?"]}],
+				},
+				"createtime":{"key":"""/html//span[@class="grid-r ask-time"]/text()"""},
 			}
 		},
 		common.G_PAGETYPE["index"]["type"]: {},
