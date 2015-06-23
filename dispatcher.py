@@ -81,14 +81,19 @@ class Dispatcher(object):
 	def run(self):
 		""" Start Dispatcher."""
 		while True:
-			self._sql.check_connect()
-			if self._redis.llen(CONFIG.G_NEW_LINK_QUEUE) == 0:
-				self.get_new_url()
+			try:
+				self._sql.check_connect()
+				if self._redis.llen(CONFIG.G_NEW_LINK_QUEUE) == 0:
+					self.get_new_url()
 
-			if self._redis.llen(CONFIG.G_UPDATE_QUEUE) == 0:
-				self.get_update_url()
+				if self._redis.llen(CONFIG.G_UPDATE_QUEUE) == 0:
+					self.get_update_url()
 
-			if self._redis.llen(CONFIG.G_PICK_QUEUE) == 0:
-				self.get_pick_url()
+				if self._redis.llen(CONFIG.G_PICK_QUEUE) == 0:
+					self.get_pick_url()
 
-			time.sleep(CONFIG.G_DISPATCH_GAP)
+				time.sleep(CONFIG.G_DISPATCH_GAP)
+			except Exception, msg:
+				if "MySQL" in str(msg):
+					continue
+
