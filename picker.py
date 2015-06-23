@@ -74,7 +74,7 @@ class Picker(threading.Thread):
 		if row:
 			return row["html"]
 		else:
-			return ""
+			return None
 
 	def _data2redis_sql(self, sqldata, table_cfg, op_type):
 		table = table_cfg["name"]
@@ -173,9 +173,11 @@ class Picker(threading.Thread):
 		d_config = CONFIG.G_SITE[domain]
 		default_code = d_config["default_code"]
 
+		html = None
 		if CONFIG.G_IFSAVE_HTML == True:
 			html = self._html_from_db(task_data["md5"], CONFIG.G_TABLE_HTML)
-			default_code = "utf-8"
+			if html:
+				default_code = "utf-8"
 
 		if not html:
 			(header, html) = net.get(url)
@@ -210,20 +212,3 @@ class Picker(threading.Thread):
 				logging.exception("[PickFail]:[except] " + str(msg))
 				if "MySQL" in str(msg):
 					self._sql.check_connect()
-
-#==============================================================
-#if __name__ == "__main__":
-#	if len(sys.argv) > 1:
-#		if sys.argv[1] == "test":
-#			thread = Picker(0, "test")
-#		else:
-#			thread = Picker(0)
-#		data = {"url":"http://manhua.dmzj.com/yaojingdeweiba/"}
-#		data["md5"] = util.GetMd5(data["url"])
-#		data["type"] = 1
-#		print thread._run(data)
-#	else:
-#		for index in range(0, CONFIG.g_max_picker_thread):
-#			thread = pickThread(index)
-#			thread.start()
-#			time.sleep(1)
