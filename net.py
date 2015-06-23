@@ -24,7 +24,9 @@ def dns_report():
 		for (ipstr, record) in info["record"].items():
 			succeed = record["succeed"] if "succeed" in record else 0
 			failed = record["failed"] if "failed" in record else 0
-			logging.info("DNS- ip: %s, OK: %s, NO: %s", ipstr, succeed, failed)
+			spend = record["spend"] if "spend" in record else 0
+			logging.info("DNS- ip: %s, OK: %s, NO: %s, SPEND: %0.3f",\
+					ipstr, succeed, failed, spend)
 
 def _flush_dns(domain, d_config=None):
 	#DNS缓存超过1小时，就重新缓存
@@ -53,7 +55,7 @@ def get_ip_from_cache(domain):
 	match_ip = DNS_CACHE[domain]["ip"][index%ips_len]
 	return match_ip
 
-def result_record(domain, match_ip, code):
+def result_record(domain, match_ip, code, spend):
 	if time.time() - DNS_CACHE["report_time"] > DNS_CACHE["report_gap"]:
 		dns_report()
 		DNS_CACHE["report_time"] = time.time()
@@ -61,12 +63,13 @@ def result_record(domain, match_ip, code):
 	if code == 200:
 		result = "succeed"
 	if not match_ip in DNS_CACHE[domain]["record"]:
-		DNS_CACHE[domain]["record"][match_ip] = {result:1}
+		DNS_CACHE[domain]["record"][match_ip] = {\
+				"succeed":0, "failed":0, "spend":spend}
+		DNS_CACHE[domain]["record"][match_ip][result] = 1
 		return
-	if not result in DNS_CACHE[domain]["record"][match_ip]:
-		DNS_CACHE[domain]["record"][match_ip] = {result: 1}
-	else:
-		DNS_CACHE[domain]["record"][match_ip][result] += 1
+
+	DNS_CACHE[domain]["record"][match_ip]["spend"] += spend
+	DNS_CACHE[domain]["record"][match_ip][result] += 1
 
 def _get(url, domain, heads=None, timeout=30, use_proxy=0, d_config=None):
 	#使用代理的站点, 按1/use_proxy比率使用代理
@@ -87,8 +90,10 @@ def _get(url, domain, heads=None, timeout=30, use_proxy=0, d_config=None):
 	heads["host"] = domain
 	match_ip = get_ip_from_cache(domain)
 	url = url.replace(domain, match_ip)
+	start = time.time()
 	(header, html) = net.get(url, heads, timeout)
-	result_record(domain, match_ip, header["code"])
+	spend = time.time() - start
+	result_record(domain, match_ip, header["code"], spend)
 	return (header, html)
 
 def _redis_contral(url, domain, heads, timeout, use_proxy, d_config):
