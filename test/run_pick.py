@@ -17,7 +17,7 @@ if __name__ == "__main__":
 		else:
 			thread = picker.Picker(0)
 		#data = {"url":"http://zhidao.baidu.com/question/132366231.html"}
-		data = {"url": "http://zhidao.baidu.com/question/426406612792677092.html"}
+		data = {"url": "http://zhidao.baidu.com/question/1668804890558292187.html"}
 		data["md5"] = util.md5(data["url"])
 		data["type"] = 1
 		print thread._run(data)

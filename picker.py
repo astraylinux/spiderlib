@@ -68,9 +68,9 @@ class Picker(threading.Thread):
 		division = table_cfg["division"]
 		if division == 16 or division == 256:
 			flag = md5[-1:] if division == 16 else md5[-2:]
-			row = self._sql.select(table + flag, ["html"], {"md5":md5}, one=0)
+			row = self._sql.select(table + flag, ["html"], {"md5":md5}, one=True)
 		else:
-			row = self._sql.select(table, ["html"], {"md5":md5}, one=0)
+			row = self._sql.select(table, ["html"], {"md5":md5}, one=True)
 		if row:
 			return row["html"]
 		else:
@@ -141,7 +141,7 @@ class Picker(threading.Thread):
 		else:
 			return (insert_count, ret_count)
 
-	def _pick(self, d_config, html, task_data):
+	def _pick(self, d_config, html, task_data, default_code):
 		md5 = task_data["md5"]
 		url = task_data["url"]
 		page_type = task_data["type"]
@@ -151,7 +151,7 @@ class Picker(threading.Thread):
 		table_cfg = CONFIG.G_TABLE_INFO
 		if "table" in p_config:
 			table_cfg = p_config["table"]
-		picker = expath.XPath(url, html, d_config["default_code"])
+		picker = expath.XPath(url, html, default_code)
 		xpath_config = p_config["path"]
 		ret = picker.pick(xpath_config)
 
@@ -171,9 +171,11 @@ class Picker(threading.Thread):
 		url = task_data["url"]
 		domain = url.split("/")[2]
 		d_config = CONFIG.G_SITE[domain]
+		default_code = d_config["default_code"]
 
 		if CONFIG.G_IFSAVE_HTML == True:
 			html = self._html_from_db(task_data["md5"], CONFIG.G_TABLE_HTML)
+			default_code = "utf-8"
 
 		if not html:
 			(header, html) = net.get(url)
@@ -182,7 +184,7 @@ class Picker(threading.Thread):
 					CONFIG.G_STATE_ERROR, CONFIG.G_TABLE_LINK)
 				return (CONFIG.G_STATE_NET_ERROR, (0, 0))
 
-		count = self._pick(d_config, html, task_data)
+		count = self._pick(d_config, html, task_data, default_code)
 		return (CONFIG.G_STATE_PICKED, count)
 
 	def run(self):
@@ -202,7 +204,7 @@ class Picker(threading.Thread):
 					logging.info("[PickOk][%d][%d]:%s %s", \
 							count[0], count[1], md5, url)
 				else:
-					logging.info("[PickFail]: %d ", state + url)
+					logging.info("[PickFail]: %d %s", state, url)
 			except Exception, msg:
 				logging.exception("[PickFail]:[except] " + url)
 				logging.exception("[PickFail]:[except] " + str(msg))
