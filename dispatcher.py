@@ -23,14 +23,12 @@ class Dispatcher(object):
 
 	def get_new_url(self):
 		""" Get urls that never be visit insert into redis queue."""
-		gdc = CONFIG.G_DISPATCH_CRAWLER
-		id_limit = "id%%%d=%d and "%(gdc[1], gdc[0])
 		if CONFIG.G_INTO_DETAIL:
-			where = "where %s crawl_state=%s limit %s"%(id_limit,\
-				CONFIG.G_STATUS_UNCRAWLED, CONFIG.G_MAX_SELECTNUM_NEW)
+			where = "where crawl_state=%s limit %s"%(CONFIG.G_STATUS_UNCRAWLED,\
+				CONFIG.G_MAX_SELECTNUM_NEW)
 		else:
-			where = "where %s crawl_state=%s and not type=1 limit %s"%(\
-				id_limit, CONFIG.G_STATUS_UNCRAWLED, CONFIG.G_MAX_SELECTNUM_NEW)
+			where = "where crawl_state=%s and not type=1 limit %s"%(\
+				CONFIG.G_STATUS_UNCRAWLED, CONFIG.G_MAX_SELECTNUM_NEW)
 		rows = self._sql.select(CONFIG.G_TABLE_LINK["name"], ["*"], where)
 		for row in rows:
 			data = json.dumps(row)
@@ -40,12 +38,9 @@ class Dispatcher(object):
 
 	def get_update_url(self):
 		""" Get urls that need visit again. Insert into redis queue."""
-		gdc = CONFIG.G_DISPATCH_CRAWLER
-		id_limit = "id%%%d=%d and "%(gdc[1], gdc[0])
-		where = "where %s ((CEIL(un_uptimes-uptimes)+1)*%s+last_time)<%s\
-				and crawl_state=%s limit %s"%(id_limit, \
-				CONFIG.G_RISE_INTERVAL, int(time.time()),\
-				CONFIG.G_STATUS_CRAWLED, CONFIG.G_MAX_SELECTNUM_UP)
+		where = "where ((CEIL(un_uptimes-uptimes)+1)*%s+last_time)<%s\
+				and crawl_state=%s limit %s"%(CONFIG.G_RISE_INTERVAL,\
+				int(time.time()), CONFIG.G_STATUS_CRAWLED, CONFIG.G_MAX_SELECTNUM_UP)
 		rows = self._sql.select(CONFIG.G_TABLE_LINK["name"], ["*"], where)
 		for row in rows:
 			data = json.dumps(row)
