@@ -32,6 +32,7 @@ class Redis2Sql(object):
 					where = {data["key"]:data["data"][data["key"]]}
 					update_count += self._sql.update(pieces[1],\
 							data["data"], where)
+		self._sql.commit()
 		return (insert_count, update_count)
 
 	def _batch_length(self):

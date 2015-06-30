@@ -24,6 +24,7 @@ def init_url(url, sql_agent=None):
 	data["last_time"] = int(time.time())
 	data["domain"] = url.split("/")[2]
 	ret = sql_agent.insert(CONFIG.G_TABLE_LINK["name"], data)
+	sql_agent.commit()
 	return (sql_agent, ret)
 
 def creat_link_db():
@@ -52,7 +53,8 @@ def creat_link_db():
 			  `state` smallint(6) DEFAULT '0' COMMENT '扩展用状态字段(extend)',
 			  PRIMARY KEY (`id`),
 			  UNIQUE KEY `md5` (`md5`) USING BTREE
-			) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;"""%(table)
+			) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;"""%(table)
+			#) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;"""%(table)
 		#print link_sql
 		return sql_agent.execute(link_sql)
 
@@ -73,7 +75,8 @@ def creat_html_db():
 			`state` smallint(6) DEFAULT '0' COMMENT '扩展用状态字段(extend)',
 			PRIMARY KEY (`id`),
 			UNIQUE KEY `md5` (`md5`) USING BTREE
-		) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;"""%(table)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8;"""%(table)
+		#) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;"""%(table)
 		#print html_sql
 		return sql_agent.execute(html_sql)
 
@@ -98,6 +101,7 @@ def creat_info_db():
 		  PRIMARY KEY (`id`),
 		  UNIQUE KEY `md5` (`md5`) USING BTREE,
 		  KEY `id` (`id`) USING BTREE
-		) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;"""%(table)
+		) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;"""%(table)
+		#) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;"""%(table)
 		#print info_sql
 		return sql_agent.execute(info_sql)
