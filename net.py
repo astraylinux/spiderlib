@@ -8,69 +8,97 @@ from pylib import net, spider, util
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
-DOMAINS = {}
-BLACK = []
-DNS_CACHE = {"report_time":0, "report_gap":300}
 net.init_proxy("data/proxy.conf")
 
-def dns_report():
-	logging.info("DNS-========== DNS report")
-	for (domain, info) in DNS_CACHE.items():
-		if domain == "report_time" or domain == "report_gap":
-			continue
-		logging.info(domain)
-		logging.info("DNS- lasttime: %s", util.second2date(info["lasttime"]))
-		logging.info("DNS- index: %d", info["index"])
-		for (ipstr, record) in info["record"].items():
-			succeed = record["succeed"] if "succeed" in record else 0
-			failed = record["failed"] if "failed" in record else 0
-			spend = record["spend"] if "spend" in record else 0
-			logging.info("DNS- ip: %s, OK: %s, NO: %s, SPEND: %0.3f",\
-					ipstr, succeed, failed, spend)
+class DnsCache(object):
+	def __init__(self):
+		self._cache = {"report_time":0, "report_gap":30}
 
-def _flush_dns(domain, d_config=None):
-	#DNS缓存超过1小时，就重新缓存
-	#if nds cache use time more than 1 hour,  update it
-	logging.info("DNS- flush_dns")
-	try:
-		host_ips = socket.getaddrinfo(domain, None, 0, socket.SOCK_STREAM)
-	except socket.gaierror:
-		return ({"code":999}, "")
-	DNS_CACHE[domain]["ip"] = []
-	if d_config and "default_dns" in d_config:
-		DNS_CACHE[domain]["ip"] = d_config["default_dns"]
+	def report(self):
+		""" Log the state of the cache, IP number, spend time  etc."""
+		logging.info("DNS- ========== DNS report")
+		for (domain, info) in self._cache.items():
+			if domain == "report_time" or domain == "report_gap":
+				continue
+			logging.info("DNS- domain: %s", domain)
+			logging.info("DNS- lasttime: %s", util.second2date(info["lasttime"]))
+			logging.info("DNS- index: %d", info["index"])
+			logging.info("DNS- active: %d, limit: %d", info["active"], info["limit"])
+			for (ipstr, record) in info["record"].items():
+				succeed = record["succeed"] if "succeed" in record else 0
+				failed = record["failed"] if "failed" in record else 0
+				spend = record["spend"] if "spend" in record else 0
+				logging.info("DNS- ip: %s, OK: %s, NO: %s, SPEND: %0.3f",\
+						ipstr, succeed, failed, spend)
 
-	if host_ips:
-		for host_ip in host_ips:
-			new_ip = host_ip[4][0]
-			if not new_ip in DNS_CACHE[domain]["ip"]:
-				DNS_CACHE[domain]["ip"].append(new_ip)
-	DNS_CACHE[domain]["lasttime"] = time.time()
-	DNS_CACHE[domain]["record"] = {}
-	DNS_CACHE[domain]["index"] = 0
+	def flush(self, domain, d_config=None):
+		""" If NDS cache is used too long,  update it."""
+		logging.info("DNS- flush_dns")
+		try:
+			host_ips = socket.getaddrinfo(domain, None, 0, socket.SOCK_STREAM)
+		except socket.gaierror:
+			return ({"code":999}, "")
+		self._cache[domain]["ip"] = []
+		self._cache[domain]["limit"] = 10
+		if not "active" in self._cache[domain]:
+			self._cache[domain]["active"] = 0
+		if d_config and "default_dns" in d_config:
+			self._cache[domain]["ip"] = d_config["default_dns"]
+			self._cache[domain]["limit"] = d_config["spider_thread_num"]
 
-def get_ip_from_cache(domain):
-	index = DNS_CACHE[domain]["index"]
-	DNS_CACHE[domain]["index"] += 1
-	ips_len = len(DNS_CACHE[domain]["ip"])
-	match_ip = DNS_CACHE[domain]["ip"][index%ips_len]
-	return match_ip
+		if host_ips:
+			for host_ip in host_ips:
+				new_ip = host_ip[4][0]
+				if not new_ip in self._cache[domain]["ip"]:
+					self._cache[domain]["ip"].append(new_ip)
+		self._cache[domain]["lasttime"] = time.time()
+		self._cache[domain]["record"] = {}
+		self._cache[domain]["index"] = 0
 
-def result_record(domain, match_ip, code, spend):
-	if time.time() - DNS_CACHE["report_time"] > DNS_CACHE["report_gap"]:
-		dns_report()
-		DNS_CACHE["report_time"] = time.time()
-	result = "failed"
-	if code == 200:
-		result = "succeed"
-	if not match_ip in DNS_CACHE[domain]["record"]:
-		DNS_CACHE[domain]["record"][match_ip] = {\
-				"succeed":0, "failed":0, "spend":spend}
-		DNS_CACHE[domain]["record"][match_ip][result] = 1
-		return
+	def get_ip(self, domain, d_config):
+		"""
+			Get a IP from cache. If too much threads are working for this domain,
+			It will wait. Before return the IP, catch a 'semaphore'.
+		"""
+		dcache = self._cache[domain]
+		while self._cache[domain]["active"] >= self._cache[domain]["limit"]:
+			time.sleep(1)
 
-	DNS_CACHE[domain]["record"][match_ip]["spend"] += spend
-	DNS_CACHE[domain]["record"][match_ip][result] += 1
+		self._cache[domain]["active"] += 1
+		if d_config:
+			time.sleep(d_config["spider_gap"])
+		index = self._cache[domain]["index"]
+		self._cache[domain]["index"] += 1
+		ips_len = len(self._cache[domain]["ip"])
+		match_ip = self._cache[domain]["ip"][index%ips_len]
+		return match_ip
+
+	def record(self, domain, match_ip, code, spend):
+		""" Record the work state of a ip, and relace a 'semaphore'."""
+		self._cache[domain]["active"] -= 1
+		if time.time() - self._cache["report_time"] > self._cache["report_gap"]:
+			self.report()
+			self._cache["report_time"] = time.time()
+		result = "failed"
+		if code == 200:
+			result = "succeed"
+		if not match_ip in self._cache[domain]["record"]:
+			self._cache[domain]["record"][match_ip] = {\
+					"succeed":0, "failed":0, "spend":spend}
+			self._cache[domain]["record"][match_ip][result] = 1
+			return
+
+		self._cache[domain]["record"][match_ip]["spend"] += spend
+		self._cache[domain]["record"][match_ip][result] += 1
+
+	def check_domain(self, domain, d_config=None):
+		if not domain in self._cache:
+			self._cache[domain] = {"lasttime":0}
+		if time.time() - self._cache[domain]["lasttime"] > 3600:
+			self.flush(domain, d_config)
+
+
+DNS = DnsCache()
 
 def _get(url, domain, heads=None, timeout=30, use_proxy=0, d_config=None):
 	#使用代理的站点, 按1/use_proxy比率使用代理
@@ -81,33 +109,20 @@ def _get(url, domain, heads=None, timeout=30, use_proxy=0, d_config=None):
 
 	#不使用代理的，要做dns缓存
 	#if not use proxy,  we save the dns info
-	if not domain in DNS_CACHE:
-		DNS_CACHE[domain] = {"lasttime":0}
-	if time.time() - DNS_CACHE[domain]["lasttime"] > 3600:
-		_flush_dns(domain, d_config)
+	DNS.check_domain(domain, d_config)
 
 	if not heads:
 		heads = {}
 	heads["host"] = domain
-	match_ip = get_ip_from_cache(domain)
+	match_ip = DNS.get_ip(domain, d_config)
 	url = url.replace(domain, match_ip)
+
 	start = time.time()
 	(header, html) = net.get(url, heads, timeout)
 	spend = time.time() - start
-	result_record(domain, match_ip, header["code"], spend)
-	return (header, html)
 
-def _redis_contral(url, domain, heads, timeout, use_proxy, d_config):
-	#rc = util.get_redis_client(config.g_redis)
-	#rkey = domain + "_threads"
-	#while rc.get(rkey) >= str(domain_config["spider_thread_num"]):
-	#	time.sleep(1)
-	#time.sleep(domain_config["spider_gap"])
-	#rc.incr(rkey)
-	#result = _get(url, domain, heads, timeout, use_proxy, d_config)
-	#rc.decr(rkey)
-	#return result
-	return
+	DNS.record(domain, match_ip, header["code"], spend)
+	return (header, html)
 
 def get(url, heads=None, encode=False, timeout=30, use_proxy=0, d_config=None):
 	if not "/" in url:
@@ -115,7 +130,6 @@ def get(url, heads=None, encode=False, timeout=30, use_proxy=0, d_config=None):
 	domain = url.split("/")[2]
 
 	if d_config:
-		time.sleep(d_config["spider_gap"])
 		result = _get(url, domain, heads, timeout, use_proxy, d_config)
 		if encode == True:
 			(info, html) = result
