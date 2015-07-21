@@ -12,7 +12,7 @@ net.init_proxy("data/proxy.conf")
 
 class DnsCache(object):
 	def __init__(self):
-		self._cache = {"report_time":0, "report_gap":30}
+		self._cache = {"report_time":0, "report_gap":300}
 
 	def report(self):
 		""" Log the state of the cache, IP number, spend time  etc."""
