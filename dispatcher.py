@@ -5,10 +5,15 @@ import pylib
 import time
 import json
 import logging
+import random
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
 CONFIG = None
+
+def random_func(x, y):
+	""" For list.sort(), make the task queue unorder."""
+	return random.randint(1, 2) * 2 - 3
 
 class Dispatcher(object):
 	"""
@@ -30,7 +35,9 @@ class Dispatcher(object):
 			where = "where crawl_state=%s and not type=1 limit %s"%(\
 				CONFIG.G_STATUS_UNCRAWLED, CONFIG.G_MAX_SELECTNUM_NEW)
 		rows = self._sql.select(CONFIG.G_TABLE_LINK["name"], ["*"], where)
-		for row in rows:
+		random_rows = [row for row in rows]
+		random_rows.sort(random_func)
+		for row in random_rows:
 			data = json.dumps(row)
 			self._redis.lpush(CONFIG.G_NEW_LINK_QUEUE, data)
 		if len(rows) > 0:
@@ -42,7 +49,9 @@ class Dispatcher(object):
 				and crawl_state=%s limit %s"%(CONFIG.G_RISE_INTERVAL,\
 				int(time.time()), CONFIG.G_STATUS_CRAWLED, CONFIG.G_MAX_SELECTNUM_UP)
 		rows = self._sql.select(CONFIG.G_TABLE_LINK["name"], ["*"], where)
-		for row in rows:
+		random_rows = [row for row in rows]
+		random_rows.sort(random_func)
+		for row in random_rows:
 			data = json.dumps(row)
 			self._redis.lpush(CONFIG.G_UPDATE_QUEUE, data)
 		if len(rows) > 0:
@@ -67,7 +76,9 @@ class Dispatcher(object):
 				for row in rows:
 					result.append(row)
 
-		for row in result:
+		random_rows = [row for row in result]
+		random_rows.sort(random_func)
+		for row in random_rows:
 			data = json.dumps(row)
 			self._redis.rpush(CONFIG.G_PICK_QUEUE, data)
 		if len(result) > 0:
