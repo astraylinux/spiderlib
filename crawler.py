@@ -28,13 +28,14 @@ CONFIG = None
 ###								process control
 ##########################################################################
 class Crawler(threading.Thread):
-	def __init__(self, num):
+	def __init__(self, num, test=False):
 		threading.Thread.__init__(self)
 		util.log_config(CONFIG.G_SPIDER_LOG)
 		self._num = num
 		self._redis = util.get_redis_client(CONFIG.G_REDIS)
 		self._sql = sql.Sql(CONFIG.G_MYSQL, CONFIG.G_MAINDB, assoc=True)
 		self._site = {}
+		self._test = test
 
 	#检查数据是否在数据库里
 	def _db_had(self, table_cfg, check_list):
@@ -59,6 +60,8 @@ class Crawler(threading.Thread):
 
 	#数据加入数据库处理队列
 	def _insert2sql(self, links, check_list):
+		if self._test:
+			return 0
 		db_had = self._db_had(CONFIG.G_TABLE_LINK, check_list)
 		last_time = time.time()
 		table = CONFIG.G_TABLE_LINK["name"]
@@ -79,6 +82,8 @@ class Crawler(threading.Thread):
 
 	#保存html页面到数据库， 分为详情页和过程页，保存可配置
 	def _save_html(self, md5, html):
+		if self._test:
+			return
 		if CONFIG.G_IFSAVE_HTML == False:
 			return
 		if CONFIG.G_IFSAVE_PASS == False and self._site["task"]["type"] !=\
@@ -92,13 +97,15 @@ class Crawler(threading.Thread):
 		division = CONFIG.G_TABLE_HTML["division"]
 		if not self._db_had(CONFIG.G_TABLE_HTML, {"md5":md5}):
 			sql.data2redis(self._redis, CONFIG.G_SQL_QUEUE, table,\
-			"insert", item, "md5", division)
+				"insert", item, "md5", division)
 		else:
 			sql.data2redis(self._redis, CONFIG.G_SQL_QUEUE, table,\
-			"update", item, "md5", division)
+				"update", item, "md5", division)
 
 	#更新状态字段
 	def _update_state(self, state, data):
+		if self._test:
+			return
 		data["crawl_state"] = state
 		table = CONFIG.G_TABLE_LINK["name"]
 		sql.data2redis(self._redis, CONFIG.G_SQL_QUEUE,\
@@ -206,9 +213,8 @@ class Crawler(threading.Thread):
 	def _analyze_html(self, url, html):
 		domain = self._site["domain"]
 		d_config = self._site["config"]
-		xpath = expath.XPath(url, html)
+		xpath = expath.XPath(url, html, code=d_config["default_code"])
 		links = xpath.pick(link_config)
-		links = util.del_duplicate(links, "href")
 		if self._site["new_depth"] > d_config["max_depth"]:
 			return "too depth :", self._site["new_depth"]
 
@@ -230,6 +236,9 @@ class Crawler(threading.Thread):
 			link_infos.append({"md5":md5, "url":link, "type":page_type})
 			check_list.append(md5)
 
+		link_infos = util.del_duplicate(link_infos, "md5")
+		if self._test:
+			return link_infos
 		count = self._insert2sql(link_infos, check_list)
 		return "[NEWCount]:%d %s"%(count, url)
 
