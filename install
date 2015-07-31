@@ -1,0 +1,6 @@
+#!/bin/bash
+
+path=`pypath`
+
+cd ../
+cp -r spiderlib $path
