@@ -1,6 +1,7 @@
 #!/bin/bash
 
-path=`pypath`
+target=$(pypath)
+cur=$(pwd)
 
 cd ../
-cp -r spiderlib $path
+ln -s $cur/spiderlib $target
