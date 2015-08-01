@@ -4,4 +4,6 @@ target=$(pypath)
 cur=$(pwd)
 
 cd ../
-ln -s $cur/spiderlib $target
+ln -fs $cur $target
+
+echo "ln -fs $cur $target"
