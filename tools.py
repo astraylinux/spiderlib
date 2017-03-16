@@ -8,7 +8,7 @@ sys.setdefaultencoding("utf-8")
 
 CONFIG = None
 
-def init_url(url, sql_agent=None):
+def init_url(url, sql_agent=None, commit=True):
 	"""
 		when the link table empty, you can't use this to add a base url
 		the spider will start crawl by it
@@ -24,7 +24,8 @@ def init_url(url, sql_agent=None):
 	data["last_time"] = int(time.time())
 	data["domain"] = url.split("/")[2]
 	ret = sql_agent.insert(CONFIG.G_TABLE_LINK["name"], data)
-	sql_agent.commit()
+	if commit:
+		sql_agent.commit()
 	return (sql_agent, ret)
 
 def creat_link_db():

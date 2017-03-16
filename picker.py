@@ -34,10 +34,10 @@ def print_for_test(ret):
 ###						Process Control
 ###################################################################################
 class Picker(threading.Thread):
-	def __init__(self, num, workas="crawl"):
+	def __init__(self, num, work_as="crawl"):
 		threading.Thread.__init__(self)
 		self._num = num
-		self._workas = workas
+		self._work_as = work_as
 		self._redis = util.get_redis_client(CONFIG.G_REDIS)
 		self._sql = sql.Sql(CONFIG.G_MYSQL, CONFIG.G_MAINDB, assoc=True)
 		util.log_config(CONFIG.G_PICK_LOG)
@@ -107,6 +107,7 @@ class Picker(threading.Thread):
 		ret_count = 0
 		insert_count = 0
 		update_count = 0
+
 		if isinstance(ret, list):
 			#提取结果是队列的情况
 			ret_count = len(ret)
@@ -116,7 +117,7 @@ class Picker(threading.Thread):
 				check_list.append(ret[i]["md5"])
 			check_ret = self._db_had(check_list, table_cfg)
 			for data in ret:
-				if data["md5"] in check_ret and self._workas == "update":
+				if data["md5"] in check_ret and self._work_as == "update":
 					self._data2redis_sql(data, table_cfg, "update")
 					update_count += 1
 				else:
@@ -128,7 +129,7 @@ class Picker(threading.Thread):
 			ret["url"] = url
 			ret["md5"] = md5
 			if self._db_had({"md5":md5}, table_cfg):
-				if self._workas == "update":
+				if self._work_as == "update":
 					self._data2redis_sql(ret, table_cfg, "update")
 					update_count += 1
 			else:
@@ -136,7 +137,7 @@ class Picker(threading.Thread):
 				insert_count += 1
 		if ret:
 			self._pick_state(md5, CONFIG.G_STATE_PICKED, CONFIG.G_TABLE_LINK)
-		if self._workas == "update":
+		if self._work_as == "update":
 			return (update_count, ret_count)
 		else:
 			return (insert_count, ret_count)
@@ -154,8 +155,9 @@ class Picker(threading.Thread):
 		picker = expath.XPath(url, html, default_code)
 		xpath_config = p_config["path"]
 		ret = picker.pick(xpath_config)
+		ret = self.ext_before_db(ret, url, html)
 
-		if self._workas == "test":
+		if self._work_as == "test":
 			print_for_test(ret)
 			return	(0, len(ret))
 
@@ -166,6 +168,13 @@ class Picker(threading.Thread):
 
 		return self._deal_pick_ret(ret, url, md5, table_cfg)
 
+	def ext_before_pick(self, html, url):
+		#在提取前执行
+		return html
+
+	def ext_before_db(self, ret, url, html):
+		#在入库前执行
+		return ret
 
 	def _run(self, task_data):
 		url = task_data["url"]
@@ -186,6 +195,8 @@ class Picker(threading.Thread):
 					CONFIG.G_STATE_ERROR, CONFIG.G_TABLE_LINK)
 				return (CONFIG.G_STATE_NET_ERROR, (0, 0))
 
+
+		self.ext_before_pick(html, url)
 		count = self._pick(d_config, html, task_data, default_code)
 		return (CONFIG.G_STATE_PICKED, count)
 
